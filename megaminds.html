@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Alerta de Inundações – Rio Limpopo</title>
+
+    <!-- Fonte robótica (Google Fonts – Rajdhani / Orbitron) -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ======= CORES DO NOVO LOGO ======= */
+        :root {
+            --bg-dark:      #001F3F;   /* azul-marinho fundo */
+            --primary:      #006994;   /* azul médio (texto principal) */
+            --accent:       #00BFA5;   /* teal vibrante (destaques) */
+            --light:        #ECF0F1;   /* fundo claro (mantém um pouco de branco) */
+            --danger:       #e74c3c;
+            --warning:      #f39c12;
+            --success:      #27ae60;
+            --text-dark:    #2c3e50;
+        }
+
+        /* ======= TIPOGRAFIA ROBÓTICA ======= */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Rajdhani', 'Orbitron', sans-serif;
+        }
+        h1, h2, h3, h4 { font-family: 'Orbitron', sans-serif; }
+
+        body { 
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ed 100%); 
+            color:#333; 
+            line-height:1.6; 
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* ======= HEADER (APP-BAR) ======= */
+        header {
+            background: linear-gradient(135deg, var(--bg-dark), var(--primary));
+            color: #fff;
+            padding: 1rem 0;
+            box-shadow: 0 2px 12px rgba(0,0,0,.15);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo { 
+            display: flex;
+            align-items: center;
+        }
+        .logo img { 
+            height: 44px; 
+            margin-right: 12px; 
+            border-radius: 6px; 
+        }
+        .logo span { 
+            font-weight: 900; 
+            letter-spacing: 1px; 
+            font-size: 1.5rem;
+        }
+
+        .language-switcher {
+            background: rgba(255,255,255,.2);
+            border-radius: 30px;
+            padding: 5px;
+            cursor: pointer;
+            display: flex;
+            transition: all 0.3s ease;
+        }
+        .language-switcher:hover {
+            background: rgba(255,255,255,.3);
+        }
+        .language-switcher span {
+            padding: 5px 15px;
+            border-radius: 20px;
+            transition: .3s;
+            font-weight: 600;
+        }
+        .language-switcher .active {
+            background: #fff;
+            color: var(--primary);
+        }
+
+        /* ======= HERO ======= */
+        .hero {
+            background: linear-gradient(rgba(0, 31, 63, 0.7), rgba(0, 105, 148, 0.7)), 
+                        url('https://images.unsplash.com/photo-1582213782119-d13778645a5e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80')
+                     center/cover no-repeat;
+            height: 520px;
+            display: flex;
+            align-items: center;
+            position: relative;
+            text-align: center;
+        }
+        .hero-content { 
+            position: relative; 
+            z-index: 1; 
+            max-width: 800px; 
+            margin: 0 auto;
+            color: white;
+        }
+        .hero h1{ 
+            font-size: 2.8rem; 
+            margin-bottom: .8rem; 
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .hero p{ 
+            font-size: 1.25rem; 
+            margin-bottom: 1.5rem; 
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .btn{
+            background: var(--accent);
+            color: #fff;
+            padding: 13px 28px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: .3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .btn:hover{ 
+            background: #009688; 
+            transform: translateY(-2px); 
+            box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+        }
+
+        /* ======= SECTIONS ======= */
+        section{ 
+            padding: 90px 0; 
+        }
+        .section-title{ 
+            text-align: center; 
+            margin-bottom: 55px; 
+        }
+        .section-title h2{
+            font-size: 2.4rem;
+            color: var(--primary);
+            position: relative;
+            display: inline-block;
+            padding-bottom: 10px;
+        }
+        .section-title h2::after{
+            content: ''; 
+            position: absolute; 
+            bottom: 0; 
+            left: 50%;
+            width: 85px; 
+            height: 4px; 
+            background: var(--accent);
+            transform: translateX(-50%);
+        }
+
+        /* ======= GRID RESPONSIVO ======= */
+        .problem-content,
+        .solution-content{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 45px;
+            align-items: center;
+        }
+
+        /* ======= ESTATÍSTICAS ======= */
+        .problem-stats{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 22px;
+            margin-top: 30px;
+        }
+        .stat{
+            background: #fff;
+            padding: 28px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 6px 18px rgba(0,0,0,.06);
+            transition: .3s;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        .stat:hover{ 
+            transform: translateY(-6px); 
+            box-shadow: 0 12px 20px rgba(0,0,0,.1);
+        }
+        .stat i{ 
+            font-size: 2.6rem; 
+            color: var(--accent); 
+            margin-bottom: 14px; 
+        }
+        .stat h3{ 
+            font-size: 2.1rem; 
+            color: var(--danger); 
+            margin-bottom: 8px;
+        }
+        .stat p {
+            color: var(--text-dark);
+            font-weight: 600;
+        }
+
+        /* ======= GALERIA + MODAL ======= */
+        .image-container{ 
+            text-align: center; 
+            margin-top: 45px; 
+        }
+        .gallery-grid{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+        }
+        .clickable-img{
+            max-width: 100%;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: .3s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .clickable-img:hover{ 
+            transform: scale(1.06); 
+            box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+        }
+
+        /* ---- MODAL RESPONSIVO ---- */
+        .modal{
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.94);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-content{
+            max-width: 90vw;
+            max-height: 90vh;
+            object-fit: contain;
+            border-radius: 8px;
+            animation: zoom .4s ease;
+        }
+        @keyframes zoom{ 
+            from { transform: scale(.3); } 
+            to { transform: scale(1); } 
+        }
+        .close{
+            position: absolute;
+            top: 25px; 
+            right: 35px;
+            color: #fff; 
+            font-size: 42px; 
+            font-weight: bold;
+            cursor: pointer;
+            transition: .3s;
+        }
+        .close:hover{ 
+            color: var(--accent); 
+        }
+
+        /* ======= DEMO SENSOR ======= */
+        .system-demo{
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 12px 32px rgba(0,0,0,.12);
+        }
+        .sensor-display{
+            height: 310px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: .5s;
+        }
+        .sensor-status{ 
+            font-size: 1.55rem; 
+            font-weight: 600; 
+            margin-top: 18px; 
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .sensor-controls{
+            padding: 22px;
+            background: var(--light);
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .control-btn{
+            padding: 11px 22px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: .3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .control-btn.green{ background: var(--success); color: #fff; }
+        .control-btn.yellow{ background: var(--warning); color: #fff; }
+        .control-btn.red{ background: var(--danger); color: #fff; }
+        .control-btn:hover{ 
+            opacity: .92; 
+            transform: scale(1.06); 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .alert-levels{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 22px;
+            margin-top: 30px;
+        }
+        .alert-level{
+            padding: 28px;
+            border-radius: 10px;
+            color: #fff;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .alert-level:hover {
+            transform: translateY(-5px);
+        }
+        .alert-level.green{ background: var(--success); }
+        .alert-level.yellow{ background: var(--warning); }
+        .alert-level.red{ background: var(--danger); }
+        .alert-level i{ 
+            font-size: 2.7rem; 
+            margin-bottom: 14px; 
+        }
+
+        /* ======= FOOTER ======= */
+        footer{ 
+            background: var(--bg-dark); 
+            color: #fff; 
+            padding: 45px 0 25px; 
+        }
+        .footer-content{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 35px;
+            margin-bottom: 35px;
+        }
+        .footer-section h3{
+            margin-bottom: 18px;
+            position: relative;
+            padding-bottom: 10px;
+        }
+        .footer-section h3::after{
+            content: ''; 
+            position: absolute; 
+            bottom: 0; 
+            left: 0;
+            width: 55px; 
+            height: 3px; 
+            background: var(--accent);
+        }
+        .footer-bottom{ 
+            text-align: center; 
+            padding-top: 22px; 
+            border-top: 1px solid rgba(255,255,255,.12); 
+        }
+
+        .footer-section a {
+            color: #fff;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        .footer-section a:hover {
+            color: var(--accent);
+        }
+
+        @media (max-width: 768px){
+            .hero h1{ font-size: 2.2rem; }
+            .hero p{ font-size: 1.1rem; }
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+            .sensor-controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+<!-- ================= HEADER ================= -->
+<header>
+    <div class="container">
+        <div class="header-content">
+            <div class="logo">
+                <img src="/megaminds.jpg" alt="Megaminds Logo">
+                <span id="logoText">MEGAMINDS</span>
+            </div>
+            <div class="language-switcher" id="languageSwitcher">
+                <span class="language-option active" data-lang="pt">PT</span>
+                <span class="language-option" data-lang="en">EN</span>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+    <div class="container">
+        <div class="hero-content">
+            <h1 id="heroTitle">Proteção Inteligente contra Inundações</h1>
+            <p id="heroDescription">Sistema de monitoramento em tempo real do nível do Rio Limpopo – alertas precoces que salvam vidas e reduzem custos.</p>
+            <a href="#solution" class="btn" id="heroButton">Conheça a Solução</a>
+        </div>
+    </div>
+</section>
+
+<!-- ================= PROBLEMA ================= -->
+<section id="problem">
+    <div class="container">
+        <div class="section-title">
+            <h2 id="problemTitle">O Desafio</h2>
+        </div>
+
+        <div class="problem-content">
+            <div>
+                <p id="problemIntro">As cheias do Rio Limpopo ameaçam milhares de famílias todos os anos. Em 2023:</p>
+
+                <div class="problem-stats">
+                    <div class="stat">
+                        <i class="fas fa-home"></i>
+                        <h3>8.000</h3>
+                        <p id="stat1">Famílias em risco</p>
+                    </div>
+                    <div class="stat">
+                        <i class="fas fa-tint"></i>
+                        <h3>50+</h3>
+                        <p id="stat2">Casas alagadas</p>
+                    </div>
+                    <div class="stat">
+                        <i class="fas fa-users"></i>
+                        <h3>1.000+</h3>
+                        <p id="stat3">Pessoas afetadas</p>
+                    </div>
+                    <div class="stat">
+                        <i class="fas fa-heartbeat"></i>
+                        <h3>7</h3>
+                        <p id="stat4">Vidas perdidas</p>
+                    </div>
+                </div>
+
+                <p id="problemEffectsTitle" style="margin-top:20px;">As inundações provocam:</p>
+                <ul id="problemEffects" style="margin-left:20px;">
+                    <li>Destruição de residências e infraestruturas</li>
+                    <li>Perda de colheitas e meios de subsistência</li>
+                    <li>Falta de água potável e cuidados de saúde</li>
+                    <li>Deslocamento forçado de famílias</li>
+                    <li>Retorno a zonas de risco por ausência de alternativas</li>
+                </ul>
+            </div>
+
+            <!-- GALERIA -->
+            <div class="image-container">
+                <h2 style="color:var(--primary);margin-bottom:18px;">Rio Limpopo – Imagens Reais</h2>
+                <div class="gallery-grid">
+                    <img src="/imagens das cheias /Flooded houses.pdf_000.png" alt="Cheia 1" class="clickable-img">
+                    <img src="/imagens das cheias /Flooded houses.pdf_002.png" alt="Cheia 2" class="clickable-img">
+                    <img src="/imagens das cheias /Flooded houses.pdf_001.png" alt="Cheia 3" class="clickable-img">
+                    <img src="/imagens das cheias /Flooded houses.pdf_003.png" alt="Cheia 4" class="clickable-img">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ================= MODAL ================= -->
+<div id="imageModal" class="modal">
+    <span class="close" id="closeModal">×</span>
+    <img class="modal-content" id="modalImage" alt="Ampliação">
+</div>
+
+<!-- ================= SOLUÇÃO ================= -->
+<section id="solution" style="background:var(--light);">
+    <div class="container">
+        <div class="section-title">
+            <h2 id="solutionTitle">Nossa Solução</h2>
+        </div>
+
+        <div class="solution-content">
+            <div>
+                <p id="solutionDescription">Desenvolvemos um sistema de sensoriamento IoT que mede o nível da água em tempo real e envia alertas automáticos para as comunidades.</p>
+
+                <div class="alert-system" style="margin-top:35px;">
+                    <h3 id="alertLevelsTitle">Níveis de Alerta</h3>
+
+                    <div class="alert-levels">
+                        <div class="alert-level green">
+                            <i class="fas fa-check-circle"></i>
+                            <h4 id="alertGreenTitle">VERDE</h4>
+                            <p id="alertGreenDesc">Nível estável</p>
+                        </div>
+                        <div class="alert-level yellow">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <h4 id="alertYellowTitle">AMARELO</h4>
+                            <p id="alertYellowDesc">Preparar evacuação</p>
+                        </div>
+                        <div class="alert-level red">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <h4 id="alertRedTitle">VERMELHO</h4>
+                            <p id="alertRedDesc">Evacuação imediata</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="system-demo">
+                <div class="sensor-display" id="sensorDisplay" style="background:var(--success);">
+                    <i class="fas fa-tint" style="font-size:5.2rem;color:#fff;"></i>
+                    <div class="sensor-status" id="sensorStatus">VERDE – Rio Estável</div>
+                </div>
+
+                <div class="sensor-controls">
+                    <button class="control-btn green" onclick="changeLevel('green')" id="btnGreen">Nível Verde</button>
+                    <button class="control-btn yellow" onclick="changeLevel('yellow')" id="btnYellow">Nível Amarelo</button>
+                    <button class="control-btn red" onclick="changeLevel('red')" id="btnRed">Nível Vermelho</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3 id="footerContact">Contato</h3>
+                <p><i class="fas fa-envelope"></i> megamindstechnology@gmail.com</p>
+                <p><i class="fas fa-phone"></i> +258 87 490 2589</p>
+            </div>
+            <div class="footer-section">
+                <h3 id="footerLinks">Links Rápidos</h3>
+                <p><a href="#problem">O Desafio</a></p>
+                <p><a href="#solution">Solução</a></p>
+            </div>
+            <div class="footer-section">
+                <h3 id="footerAbout">Sobre o Projeto</h3>
+                <p id="footerAboutDesc">Reduzir perdas humanas e custos estatais com alertas precoces ao longo do Rio Limpopo.</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p id="footerCopyright">© 2025 Megaminds Technology – Todos os direitos reservados.</p>
+        </div>
+    </div>
+</footer>
+
+<script>
+// Dicionário de traduções
+const translations = {
+    pt: {
+        logoText: "MEGAMINDS",
+        heroTitle: "Proteção Inteligente contra Inundações",
+        heroDescription: "Sistema de monitoramento em tempo real do nível do Rio Limpopo – alertas precoces que salvam vidas e reduzem custos.",
+        heroButton: "Conheça a Solução",
+        problemTitle: "O Desafio",
+        problemIntro: "As cheias do Rio Limpopo ameaçam milhares de famílias todos os anos. Em 2023:",
+        stat1: "Famílias em risco",
+        stat2: "Casas alagadas",
+        stat3: "Pessoas afetadas",
+        stat4: "Vidas perdidas",
+        problemEffectsTitle: "As inundações provocam:",
+        problemEffects: [
+            "Destruição de residências e infraestruturas",
+            "Perda de colheitas e meios de subsistência",
+            "Falta de água potável e cuidados de saúde",
+            "Deslocamento forçado de famílias",
+            "Retorno a zonas de risco por ausência de alternativas"
+        ],
+        solutionTitle: "Nossa Solução",
+        solutionDescription: "Desenvolvemos um sistema de sensoriamento IoT que mede o nível da água em tempo real e envia alertas automáticos para as comunidades.",
+        alertLevelsTitle: "Níveis de Alerta",
+        alertGreenTitle: "VERDE",
+        alertGreenDesc: "Nível estável",
+        alertYellowTitle: "AMARELO",
+        alertYellowDesc: "Preparar evacuação",
+        alertRedTitle: "VERMELHO",
+        alertRedDesc: "Evacuação imediata",
+        btnGreen: "Nível Verde",
+        btnYellow: "Nível Amarelo",
+        btnRed: "Nível Vermelho",
+        sensorStatusGreen: "VERDE – Rio Estável",
+        sensorStatusYellow: "AMARELO – Preparar Evacuação",
+        sensorStatusRed: "VERMELHO – Evacuar Imediatamente",
+        footerContact: "Contato",
+        footerLinks: "Links Rápidos",
+        footerAbout: "Sobre o Projeto",
+        footerAboutDesc: "Reduzir perdas humanas e custos estatais com alertas precoces ao longo do Rio Limpopo.",
+        footerCopyright: "© 2025 Megaminds Technology – Todos os direitos reservados."
+    },
+    en: {
+        logoText: "MEGAMINDS",
+        heroTitle: "Smart Flood Protection",
+        heroDescription: "Real-time monitoring system for the Limpopo River water level – early warnings that save lives and reduce costs.",
+        heroButton: "Learn About the Solution",
+        problemTitle: "The Challenge",
+        problemIntro: "The floods of the Limpopo River threaten thousands of families every year. In 2023:",
+        stat1: "Families at risk",
+        stat2: "Flooded houses",
+        stat3: "People affected",
+        stat4: "Lives lost",
+        problemEffectsTitle: "The floods cause:",
+        problemEffects: [
+            "Destruction of homes and infrastructure",
+            "Loss of crops and livelihoods",
+            "Lack of drinking water and healthcare",
+            "Forced displacement of families",
+            "Return to risk areas due to lack of alternatives"
+        ],
+        solutionTitle: "Our Solution",
+        solutionDescription: "We developed an IoT sensing system that measures water levels in real time and sends automatic alerts to communities.",
+        alertLevelsTitle: "Alert Levels",
+        alertGreenTitle: "GREEN",
+        alertGreenDesc: "Stable level",
+        alertYellowTitle: "YELLOW",
+        alertYellowDesc: "Prepare for evacuation",
+        alertRedTitle: "RED",
+        alertRedDesc: "Immediate evacuation",
+        btnGreen: "Green Level",
+        btnYellow: "Yellow Level",
+        btnRed: "Red Level",
+        sensorStatusGreen: "GREEN – River Stable",
+        sensorStatusYellow: "YELLOW – Prepare Evacuation",
+        sensorStatusRed: "RED – Evacuate Immediately",
+        footerContact: "Contact",
+        footerLinks: "Quick Links",
+        footerAbout: "About the Project",
+        footerAboutDesc: "Reduce human losses and state costs with early warnings along the Limpopo River.",
+        footerCopyright: "© 2025 Megaminds Technology – All rights reserved."
+    }
+};
+
+// Estado atual do idioma
+let currentLang = 'pt';
+
+// Função para trocar o idioma
+function switchLanguage(lang) {
+    currentLang = lang;
+    
+    // Atualiza o botão de idioma
+    document.querySelectorAll('.language-option').forEach(option => {
+        if (option.dataset.lang === lang) {
+            option.classList.add('active');
+        } else {
+            option.classList.remove('active');
+        }
+    });
+    
+    // Atualiza todos os textos
+    const texts = translations[lang];
+    
+    // Elementos simples
+    document.getElementById('logoText').textContent = texts.logoText;
+    document.getElementById('heroTitle').textContent = texts.heroTitle;
+    document.getElementById('heroDescription').textContent = texts.heroDescription;
+    document.getElementById('heroButton').textContent = texts.heroButton;
+    document.getElementById('problemTitle').textContent = texts.problemTitle;
+    document.getElementById('problemIntro').textContent = texts.problemIntro;
+    document.getElementById('stat1').textContent = texts.stat1;
+    document.getElementById('stat2').textContent = texts.stat2;
+    document.getElementById('stat3').textContent = texts.stat3;
+    document.getElementById('stat4').textContent = texts.stat4;
+    document.getElementById('problemEffectsTitle').textContent = texts.problemEffectsTitle;
+    document.getElementById('solutionTitle').textContent = texts.solutionTitle;
+    document.getElementById('solutionDescription').textContent = texts.solutionDescription;
+    document.getElementById('alertLevelsTitle').textContent = texts.alertLevelsTitle;
+    document.getElementById('alertGreenTitle').textContent = texts.alertGreenTitle;
+    document.getElementById('alertGreenDesc').textContent = texts.alertGreenDesc;
+    document.getElementById('alertYellowTitle').textContent = texts.alertYellowTitle;
+    document.getElementById('alertYellowDesc').textContent = texts.alertYellowDesc;
+    document.getElementById('alertRedTitle').textContent = texts.alertRedTitle;
+    document.getElementById('alertRedDesc').textContent = texts.alertRedDesc;
+    document.getElementById('btnGreen').textContent = texts.btnGreen;
+    document.getElementById('btnYellow').textContent = texts.btnYellow;
+    document.getElementById('btnRed').textContent = texts.btnRed;
+    document.getElementById('footerContact').textContent = texts.footerContact;
+    document.getElementById('footerLinks').textContent = texts.footerLinks;
+    document.getElementById('footerAbout').textContent = texts.footerAbout;
+    document.getElementById('footerAboutDesc').textContent = texts.footerAboutDesc;
+    document.getElementById('footerCopyright').textContent = texts.footerCopyright;
+    
+    // Lista de efeitos
+    const effectsList = document.getElementById('problemEffects');
+    effectsList.innerHTML = '';
+    texts.problemEffects.forEach(effect => {
+        const li = document.createElement('li');
+        li.textContent = effect;
+        effectsList.appendChild(li);
+    });
+    
+    // Atualiza o status do sensor se necessário
+    const sensorDisplay = document.getElementById('sensorDisplay');
+    const sensorStatus = document.getElementById('sensorStatus');
+    
+    if (sensorDisplay.style.background.includes('var(--success)')) {
+        sensorStatus.textContent = texts.sensorStatusGreen;
+    } else if (sensorDisplay.style.background.includes('var(--warning)')) {
+        sensorStatus.textContent = texts.sensorStatusYellow;
+    } else if (sensorDisplay.style.background.includes('var(--danger)')) {
+        sensorStatus.textContent = texts.sensorStatusRed;
+    }
+}
+
+/* ---------- MODAL RESPONSIVO ---------- */
+const modal = document.getElementById('imageModal');
+const modalImg = document.getElementById('modalImage');
+const closeModal = document.getElementById('closeModal');
+
+document.querySelectorAll('.clickable-img').forEach(img => {
+    img.onclick = () => {
+        modal.style.display = 'flex';
+        modalImg.src = img.src;
+        document.body.style.overflow = 'hidden';
+    };
+});
+closeModal.onclick = () => {
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+};
+modal.onclick = e => { 
+    if (e.target === modal) closeModal.onclick(); 
+};
+
+/* ---------- TROCA DE IDIOMA ---------- */
+document.querySelectorAll('.language-option').forEach(option => {
+    option.addEventListener('click', function() {
+        const lang = this.dataset.lang;
+        switchLanguage(lang);
+    });
+});
+
+/* ---------- MUDANÇA DE NÍVEL DO SENSOR ---------- */
+function changeLevel(lvl) {
+    const disp = document.getElementById('sensorDisplay');
+    const txt = document.getElementById('sensorStatus');
+    const texts = translations[currentLang];
+
+    // remove áudio antigo
+    const old = document.querySelector('audio');
+    if (old) old.remove();
+
+    if (lvl === 'green') {
+        disp.style.background = 'var(--success)';
+        txt.textContent = texts.sensorStatusGreen;
+    } else if (lvl === 'yellow') {
+        disp.style.background = 'var(--warning)';
+        txt.textContent = texts.sensorStatusYellow;
+        new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA').play();
+    } else if (lvl === 'red') {
+        disp.style.background = 'var(--danger)';
+        txt.textContent = texts.sensorStatusRed;
+        new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA').play();
+    }
+}
+</script>
+</body>
+</html>
